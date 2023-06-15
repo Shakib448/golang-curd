@@ -25,14 +25,11 @@ func Sign_Up(c *gin.Context) {
 		return
 	}
 
-	// If user exits
-
 	var singleUser models.User
 	result_single := initializers.DB.Where(&models.User{Email: body.Email}).First(&singleUser)
 
 	if result_single.Error != nil {
 		if errors.Is(result_single.Error, gorm.ErrRecordNotFound) {
-			// Create new user
 			hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 
 			if err != nil {
@@ -44,14 +41,7 @@ func Sign_Up(c *gin.Context) {
 
 			user := models.User{Email: body.Email, Password: string(hash)}
 
-			result := initializers.DB.Create(&user)
-
-			if result.Error != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "Failed to create an user",
-				})
-				return
-			}
+			initializers.DB.Create(&user)
 
 			c.JSON(http.StatusOK, gin.H{
 				"user": user,
