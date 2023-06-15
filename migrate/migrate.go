@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Shakib448/go-curd/initializers"
-	"github.com/gin-gonic/gin"
+	"github.com/Shakib448/go-curd/models"
 )
 
 func init() {
@@ -11,12 +11,5 @@ func init() {
 }
 
 func main() {
-	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run()
-
+	initializers.DB.AutoMigrate(&models.Post{})
 }
