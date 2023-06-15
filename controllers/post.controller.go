@@ -94,5 +94,27 @@ func Post_Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"post": post,
 	})
+}
 
+func Post_Delete(c *gin.Context) {
+
+	var post models.Post
+	if err := initializers.DB.First(&post, c.Param("id")).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Post not found",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to retrieve the post",
+			})
+		}
+		return
+	}
+
+	initializers.DB.Delete(&models.Post{}, c.Param("id"))
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully deleted!",
+	})
 }
