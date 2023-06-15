@@ -16,6 +16,7 @@ func main() {
 	r.POST("/post-create", controllers.Post_Create)
 	r.GET("/post-get", controllers.Get_Posts)
 	r.GET("/post-get/:id", controllers.Get_Post_By_Id)
+	r.PUT("/post-update/:id", controllers.Post_Update)
 	r.Run()
 
 }

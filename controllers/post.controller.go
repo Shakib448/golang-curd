@@ -44,7 +44,6 @@ func Get_Posts(c *gin.Context) {
 }
 
 func Get_Post_By_Id(c *gin.Context) {
-
 	var post models.Post
 	if err := initializers.DB.First(&post, c.Param("id")).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -60,6 +59,38 @@ func Get_Post_By_Id(c *gin.Context) {
 	}
 
 	// Response with the post
+	c.JSON(http.StatusOK, gin.H{
+		"post": post,
+	})
+}
+
+func Post_Update(c *gin.Context) {
+	// Get data of request body
+	var body struct {
+		Body  string
+		Title string
+	}
+
+	c.Bind(&body)
+	// Get Post by Id
+	var post models.Post
+	if err := initializers.DB.First(&post, c.Param("id")).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Post not found",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to retrieve the post",
+			})
+		}
+		return
+	}
+
+	// Update it
+	initializers.DB.Model(&post).Updates(models.Post{Title: body.Title, Body: body.Body})
+
+	// Response back
 	c.JSON(http.StatusOK, gin.H{
 		"post": post,
 	})
