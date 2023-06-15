@@ -1,7 +1,6 @@
 package initializers
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -12,16 +11,11 @@ import (
 var DB *gorm.DB
 
 func ConnectToDB() {
-
 	var err error
-	DB, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  os.Getenv("DB_URL"),
-		PreferSimpleProtocol: true,
-	}), &gorm.Config{})
+	dsn := os.Getenv("DB_URL")
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		log.Fatal("Database connection failed!")
 	}
-
-	fmt.Println(DB)
 }
