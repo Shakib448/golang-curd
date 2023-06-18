@@ -110,3 +110,9 @@ func Sign_In(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+func validate(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "I'm logged in",
+	})
+}
