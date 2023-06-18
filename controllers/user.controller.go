@@ -3,10 +3,13 @@ package controllers
 import (
 	"errors"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/Shakib448/go-curd/initializers"
 	"github.com/Shakib448/go-curd/models"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -25,14 +28,11 @@ func Sign_Up(c *gin.Context) {
 		return
 	}
 
-	// If user exits
-
 	var singleUser models.User
 	result_single := initializers.DB.Where(&models.User{Email: body.Email}).First(&singleUser)
 
 	if result_single.Error != nil {
 		if errors.Is(result_single.Error, gorm.ErrRecordNotFound) {
-			// Create new user
 			hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 
 			if err != nil {
@@ -44,14 +44,7 @@ func Sign_Up(c *gin.Context) {
 
 			user := models.User{Email: body.Email, Password: string(hash)}
 
-			result := initializers.DB.Create(&user)
-
-			if result.Error != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "Failed to create an user",
-				})
-				return
-			}
+			initializers.DB.Create(&user)
 
 			c.JSON(http.StatusOK, gin.H{
 				"user": user,
@@ -63,5 +56,65 @@ func Sign_Up(c *gin.Context) {
 		})
 		return
 	}
+}
 
+func Sign_In(c *gin.Context) {
+
+	var body struct {
+		Email    string
+		Password string
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+		return
+	}
+
+	var user models.User
+	initializers.DB.Where(&models.User{Email: body.Email}).First(&user)
+
+	if user.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "User not found",
+		})
+		return
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid email or password",
+		})
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to creating token",
+		})
+		return
+	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", tokenString, 3600*24*30, "", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func Validate(c *gin.Context) {
+	user, _ := c.Get("user")
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
 }

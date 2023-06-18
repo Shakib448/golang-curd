@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Shakib448/go-curd/controllers"
 	"github.com/Shakib448/go-curd/initializers"
+	"github.com/Shakib448/go-curd/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,8 +21,9 @@ func main() {
 	r.DELETE("/post-delete/:id", controllers.Post_Delete)
 
 	// For users
-
 	r.POST("/create-user", controllers.Sign_Up)
+	r.POST("/sign-in", controllers.Sign_In)
+	r.GET("/validate", middleware.Auth, controllers.Validate)
 	r.Run()
 
 }
