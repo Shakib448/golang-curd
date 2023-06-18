@@ -20,8 +20,8 @@ func main() {
 	r.DELETE("/post-delete/:id", controllers.Post_Delete)
 
 	// For users
-
 	r.POST("/create-user", controllers.Sign_Up)
+	r.POST("/sign-in", controllers.Sign_In)
 	r.Run()
 
 }
